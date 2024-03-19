@@ -1,4 +1,5 @@
 import 'server-only'
+import { fetcher } from '@/lib/utils'
 
 import {
   createAI,
@@ -55,6 +56,9 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
   )
 
   const systemMessage = createStreamableUI(null)
+
+  const purchaseResponse = await fetcher('FastAPI_app_endpoint', {method: 'POST', body: JSON.stringify({ symbol, price, amount })})
+  // Handle response data after this line
 
   runAsyncFnWithoutBlocking(async () => {
     await sleep(1000)
@@ -140,6 +144,9 @@ async function submitUserMessage(content: string) {
 
   let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
   let textNode: undefined | React.ReactNode
+
+  const messageResponse = await fetcher('FastAPI_app_endpoint', {method: 'POST', body: JSON.stringify({ content })})
+  // Handle response data after this line
 
   const ui = render({
     model: 'gpt-3.5-turbo',

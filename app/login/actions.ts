@@ -5,10 +5,10 @@ import { User } from '@/lib/types'
 import { AuthError } from 'next-auth'
 import { z } from 'zod'
 import { kv } from '@vercel/kv'
-import { ResultCode } from '@/lib/utils'
+import { ResultCode, fetcher } from '@/lib/utils'
 
 export async function getUser(email: string) {
-  const user = await kv.hgetall<User>(`user:${email}`)
+  const user = await fetcher('FastAPI_app_endpoint', { method: 'GET', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) })
   return user
 }
 
@@ -36,11 +36,7 @@ export async function authenticate(
       })
 
     if (parsedCredentials.success) {
-      await signIn('credentials', {
-        email,
-        password,
-        redirect: false
-      })
+      await fetcher('FastAPI_app_endpoint', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) })
 
       return {
         type: 'success',
