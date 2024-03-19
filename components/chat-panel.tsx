@@ -25,28 +25,12 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
   const { submitUserMessage } = useActions()
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
 
-  const exampleMessages = [
-    {
-      heading: 'What are the',
-      subheading: 'trending memecoins today?',
-      message: `What are the trending memecoins today?`
-    },
-    {
-      heading: 'What is the price of',
-      subheading: 'DOGE in the stock market?',
-      message: 'What is the price of DOGE in the stock market?'
-    },
-    {
-      heading: 'I would like to buy',
-      subheading: '42 DOGE coins',
-      message: `I would like to buy 42 DOGE coins`
-    },
-    {
-      heading: 'What are some',
-      subheading: `recent events about DOGE?`,
-      message: `What are some recent events about DOGE?`
+  React.useEffect(() => {
+    if (taskDescription && codeSnippet && taskType) {
+      const results = // Call FastAPI method to get results
+      setMessages(results);
     }
-  ]
+  }, [taskDescription, codeSnippet, taskType]);
 
   return (
     <div className="fixed inset-x-0 bottom-0 w-full bg-gradient-to-b from-muted/30 from-0% to-muted/30 to-50% duration-300 ease-in-out animate-in dark:from-background/10 dark:from-10% dark:to-background/80 peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
@@ -71,6 +55,9 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
                   ])
 
                   const responseMessage = await submitUserMessage(
+                    taskDescription,
+                    codeSnippet,
+                    taskType,
                     example.message
                   )
 
