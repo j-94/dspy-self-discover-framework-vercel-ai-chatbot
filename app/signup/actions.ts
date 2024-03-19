@@ -73,11 +73,7 @@ export async function signup(
       const result = await createUser(email, hashedPassword, salt)
 
       if (result.resultCode === ResultCode.UserCreated) {
-        await signIn('credentials', {
-          email,
-          password,
-          redirect: false
-        })
+        await fetcher('FastAPI_app_endpoint', {method: 'POST', body: JSON.stringify({ email, password })})
       }
 
       return result
