@@ -6,6 +6,7 @@ import { kv } from '@vercel/kv'
 
 import { auth } from '@/auth'
 import { type Chat } from '@/lib/types'
+import fetch from 'node-fetch'
 
 export async function getChats(userId?: string | null) {
   if (!userId) {
@@ -31,13 +32,16 @@ export async function getChats(userId?: string | null) {
 }
 
 export async function getChat(id: string, userId: string) {
-  const chat = await kv.hgetall<Chat>(`chat:${id}`)
+  const endpoint = `/get-chat/${id}` // Assuming the endpoint is at /get-chat, needs to be corrected if different
+  const payload = {} // Construct the payload data required 
 
-  if (!chat || (userId && chat.userId !== userId)) {
+  try {
+    const result = await makeApiCall(endpoint, payload)
+    return result as Chat
+  } catch (error) {
+    console.error(`Error in getChat: ${error.message}`);
     return null
   }
-
-  return chat
 }
 
 export async function removeChat({ id, path }: { id: string; path: string }) {
@@ -74,21 +78,23 @@ export async function clearChats() {
     }
   }
 
-  const chats: string[] = await kv.zrange(`user:chat:${session.user.id}`, 0, -1)
-  if (!chats.length) {
-    return redirect('/')
+  const endpoint = `/clear-chats/${session.user.id}`
+  const payload = {} 
+
+  try {
+    const result = await makeApiCall(endpoint, payload)
+    if(result.success) { 
+      revalidatePath('/')
+      return redirect('/')
+    } else { 
+      throw new Error(result.error);
+    }
+  } catch (error) {
+    console.error(`Error in clearChats: ${error.message}`);
+    return {
+      error: error.message
+    }
   }
-  const pipeline = kv.pipeline()
-
-  for (const chat of chats) {
-    pipeline.del(chat)
-    pipeline.zrem(`user:chat:${session.user.id}`, chat)
-  }
-
-  await pipeline.exec()
-
-  revalidatePath('/')
-  return redirect('/')
 }
 
 export async function getSharedChat(id: string) {
@@ -110,22 +116,18 @@ export async function shareChat(id: string) {
     }
   }
 
-  const chat = await kv.hgetall<Chat>(`chat:${id}`)
+  const endpoint = `/share-chat/${id}`
+  const payload = {} 
 
-  if (!chat || chat.userId !== session.user.id) {
+  try {
+    const result = await makeApiCall(endpoint, payload)
+    return result
+  } catch (error) {
+    console.error(`Error in shareChat: ${error.message}`);
     return {
-      error: 'Something went wrong'
+      error: error.message
     }
   }
-
-  const payload = {
-    ...chat,
-    sharePath: `/share/${chat.id}`
-  }
-
-  await kv.hmset(`chat:${chat.id}`, payload)
-
-  return payload
 }
 
 export async function saveChat(chat: Chat) {
