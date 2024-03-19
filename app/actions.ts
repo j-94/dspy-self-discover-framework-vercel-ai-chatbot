@@ -6,6 +6,7 @@ import { kv } from '@vercel/kv'
 
 import { auth } from '@/auth'
 import { type Chat } from '@/lib/types'
+import { fetcher } from 'lib/utils.ts'
 
 export async function getChats(userId?: string | null) {
   if (!userId) {
